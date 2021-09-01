@@ -16,9 +16,6 @@ project.ext.jomlVersion = "1.10.0"
 
 dependencies {
     implementation "org.joml:joml:${jomlVersion}"
-
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
 
 test {
