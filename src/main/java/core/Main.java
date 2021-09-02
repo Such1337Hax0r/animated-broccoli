@@ -27,7 +27,7 @@ public class Main {
 
     public static final int WIDTH = 1920;
     public static final int HEIGHT = 1080;
-    public static final int MAX_DEPTH = 5;
+    public static final int MAX_DEPTH = 2;
     public static final int SAMPLES_PER_PIXEL = 50;
 
     public static void main(String[] Args) throws IOException {
@@ -58,7 +58,7 @@ public class Main {
         Sampler sampler = new RandomSampler();
 
         Renderer<RGBSpectrum> naive = new NaivePathTracerRenderer<>(MAX_DEPTH, SAMPLES_PER_PIXEL, sampler,                                                     new RGBSpectrum(), new RGBSpectrum(1, 1, 1));
-        Renderer<RGBSpectrum> smart = new SmartPathTracerRenderer<>(MAX_DEPTH, SAMPLES_PER_PIXEL, sampler, false, new RGBSpectrum(), new RGBSpectrum(1, 1, 1));
+        Renderer<RGBSpectrum> smart = new SmartPathTracerRenderer<>(MAX_DEPTH, SAMPLES_PER_PIXEL, sampler, true, new RGBSpectrum(), new RGBSpectrum(1, 1, 1));
         //Renderer<RGBSpectrum> debug = new CoordinateRenderer();
         //Renderer<RGBSpectrum> debug = new HitCoordinateRenderer();
         //Renderer<RGBSpectrum> debug = new CosThetaRenderer();

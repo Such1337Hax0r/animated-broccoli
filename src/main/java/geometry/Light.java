@@ -48,12 +48,14 @@ public class Light<E extends Spectrum<E>> {
             info = collider.sample(sampler, startPos, scene);
             if (info.didHit()) {
                 if (info.getHitNormal().lengthSquared() > 1 + Constants.BIAS) {
-                    System.out.println(info.getHitTangent().lengthSquared());
+                    //System.out.println(info.getHitTangent().lengthSquared());
                 }
                 result = new LightSamplingResult<>(
-                        startPos.distanceSquared(info.getHitPosition())/(Math.abs(info.getHitNormal().dot(new Vector3d(info.getHitTangent()).mul(1))) * collider.area()),
+                        info.getPdf(),
+                        //startPos.distanceSquared(info.getHitPosition())/(Math.abs(info.getHitNormal().dot(new Vector3d(info.getHitTangent()).mul(-1))) * collider.area()),
                         info.getHitTangent()
                         );
+                if (info.getPdf() > 1) System.out.println(startPos + " " + info.getHitPosition() + " " + info.getHitNormal() + " " + info.getHitTangent() + " " + collider.area());
                 result.lightOutput = getEmittance(info.getU(), info.getV(), info.getHitPosition());
             } else {
                 result = new LightSamplingResult<>(0, null);

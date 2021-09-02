@@ -1,9 +1,6 @@
 package geometry;
 
-import core.Intersectable;
-import core.Intersection;
-import core.Ray;
-import core.Spectrum;
+import core.*;
 import org.joml.Vector2d;
 import org.joml.Vector3d;
 import sampling.Sampler;
@@ -60,7 +57,8 @@ public class Sphere<E extends Spectrum<E>> implements Intersectable<E> {
         Ray ray = new Ray(new Vector3d(_startPos), new Vector3d(_direction));
         Intersection<E> info = _scene.intersect(ray);
         Intersection<E> ret;
-        if (info.didHit() && info.getHitObject().hasLight() && info.getHitObject().getLight().getCollider() == this) {
+        if (info.didHit() && info.getHitObject().hasLight() && (Math.abs((info.getDistance()*info.getDistance())-_startPos.distanceSquared(info.getHitPosition())) < Constants.BIAS)/*info.getHitObject().getLight().getCollider() == this*/) {
+            //System.out.println((info.getDistance()*info.getDistance()) + " " + _startPos.distanceSquared(info.getHitPosition()));
             ret = new Intersection<>(info.getDistance(), info.getHitPosition(), info.getHitNormal(), _direction, info.getU(), info.getV(), (1/area()));
         } else {
             ret = new Intersection<>();

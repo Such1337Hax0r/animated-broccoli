@@ -133,64 +133,52 @@ public class SmartPathTracerRenderer<E extends Spectrum<E>> extends SamplingRend
         return ret;
     }
 
-    E directLight(Scene<E> scene, Vector3d hitNormal, Vector3d hitPosition, Vector3d wo, Light<E> light, Sampler sampler, BxDF<E> bxdf) {
+    /*E directLight(Scene<E> scene, Vector3d hitNormal, Vector3d hitPosition, Vector3d wo, Light<E> light, Sampler sampler, BxDF<E> bxdf) {
         E ret = zero.clone();
         LightSamplingResult<E> result = light.sample(sampler, hitPosition, scene);
         if (result.pdf != 0) {
             BxDFResult<E> bxdfResult = bxdf.f(result.resultDirection, wo);
             double cosTheta = hitNormal.dot(result.resultDirection);
-            if (cosTheta/result.pdf > 1) System.out.println(result.pdf);
+            //if (cosTheta/result.pdf > 1) System.out.println(result.pdf);
             E li = result.lightOutput.clone().mul(bxdfResult.spectrum).mul(cosTheta/result.pdf);
             //System.out.println(li);
             ret.add(li);
+        } else {
+            //System.out.println("pdf = 0");
         }
 
         return ret;
-    }
+    }*/
 
 
-/*    E directLight(Scene<E> scene, Vector3d hitPosition, Vector3d wo, Light<E> light, Sampler sampler, BxDF<E> bxdf) {
+    E directLight(Scene<E> scene, Vector3d hitPosition, Vector3d hitNormal, Vector3d wo, Light<E> light, Sampler sampler, BxDF<E> bxdf) {
         E ret = zero.clone();
-        //TODO: Figure out light sampling, replace "null" here with a BxDFResult from sampling the light
-        //TODO: Light sampling result will have light output in "result.spectrum" rather than the reflection coefficient from evaluating the bxdf
-        LightSamplingResult<E> result = light.sample(sampler, hitPosition, scene);
+        double lightPdf = 0, scatteringPdf = 0;
+        LightSamplingResult<E> li = light.sample(sampler, hitPosition, scene);
+        lightPdf = li.pdf;
+        if (li.pdf > 0 && !li.lightOutput.isZero()) {
+            BxDFResult<E> bxdfResult = bxdf.f(li.resultDirection, wo);
+            Spectrum<E> f = bxdfResult.spectrum.clone().mul(li.resultDirection.dot(hitNormal));
+            scatteringPdf = bxdfResult.pdf;
 
-        /*
-        //Check if this sample is occluded
-        Intersection<E> info = scene.intersect(new Ray(new Vector3d(hitPosition), result.resultDirection));
-        if (!info.didHit() || (info.didHit() && info.getHitObject().getLight() != light)) return zero.clone();
+            double weight = Constants.powerHeuristic(1, lightPdf, 1, scatteringPdf);
+            ret.add(f.mul(li.lightOutput).mul(weight/lightPdf));
+        }
 
-        if (result.pdf != 0 && !result.lightOutput.isZero()) {
-            BxDFResult<E> f = bxdf.f(result.resultDirection, wo);
-            if (f.pdf != 0 && !f.spectrum.isZero()) {
-                double weight = Constants.balanceHeuristic(1, result.pdf, 1, f.pdf);
-                //TODO: Check to make sure this shouldn't really be: "ret.add(result.lightOutput.clone().mul(f.spectrum).mul(weight));" instead
-                ret.add(result.lightOutput.clone().mul(f.spectrum).mul(weight /* /result.pdf));
-                //System.out.println(weight / result.pdf);
+        BxDFResult<E> bxdfResult = bxdf.sampleF(wo, sampler.get2d(0,1));
+        Spectrum<E> f = bxdfResult.spectrum.clone().mul(bxdfResult.resultDirection.dot(hitNormal));
+        scatteringPdf = bxdfResult.pdf;
+        if (!f.isZero() && scatteringPdf > 0) {
+            li = light.evaluate(hitNormal, bxdfResult.resultDirection, scene);
+            lightPdf = li.pdf;
+            double weight = Constants.powerHeuristic(1, scatteringPdf, 1, lightPdf);
+            if (lightPdf != 0) {
+                ret.add(f.mul(li.lightOutput).mul(weight / scatteringPdf));
             }
         }
 
-        BxDFResult<E> scatteringResult = bxdf.sampleF(wo, sampler.get2d(0, 1));
-        if (scatteringResult.pdf != 0 && !scatteringResult.spectrum.isZero()) {
-            //TODO: Figure out light sampling: lightPdf needs to be the probability of picking the current result.resultDirection by sampling the light
-            LightSamplingResult<E> lightSamplingResult = light.evaluate(hitPosition, scatteringResult.resultDirection, scene);
-            if (lightSamplingResult.pdf == 0) {
-                return ret;
-            }
-
-            /*
-            //Check if this sample is occluded
-            info = scene.intersect(new Ray(new Vector3d(hitPosition), scatteringResult.resultDirection));
-            if (!info.didHit() || (info.didHit() && info.getHitObject().getLight() != light)) return ret;
-
-
-            double weight = Constants.balanceHeuristic(1, scatteringResult.pdf, 1, lightSamplingResult.pdf);
-            //TODO: Check to make sure this shouldn't really be: "ret.add(lightSamplingResult.lightOutput.clone().mul(scatteringResult.spectrum).mul(weight))" instead
-            ret.add(lightSamplingResult.lightOutput.clone().mul(scatteringResult.spectrum).mul(weight /* /scatteringResult.pdf));
-        }
         return ret;
     }
- */
 
 /*    E tracePath(Ray ray, Intersectable<E> scene, int depth) {
         if (depth > maxDepth) {
